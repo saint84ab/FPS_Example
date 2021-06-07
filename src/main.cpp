@@ -54,7 +54,7 @@ void OnScroll(GLFWwindow* window, double xoffset, double yoffset) {
 int main(int argc, const char** __argv){
     SPDLOG_INFO("Start program");
    
-    // glfw ë¼ì´ë¸ŒëŸ¬ë¦¬ ì´ˆê¸°í™”, ì‹¤íŒ¨í•˜ë©´ ì—ëŸ¬ ì¶œë ¥ í›„ ì¢…ë£Œ
+    // glfw ?¼?´ë¸ŒëŸ¬ë¦? ì´ˆê¸°?™”, ?‹¤?Œ¨?•˜ë©? ?—?Ÿ¬ ì¶œë ¥ ?›„ ì¢…ë£Œ
     SPDLOG_INFO("Initialize glfw");
     if(!glfwInit()){
         const char* description = nullptr;
@@ -68,7 +68,7 @@ int main(int argc, const char** __argv){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    // glfw ìœˆë„ìš° ìƒì„±, ì‹¤íŒ¨í•˜ë©´ ì—ëŸ¬ ì¶œë ¥ í›„ ì¢…ë£Œ
+    // glfw ?œˆ?„?š° ?ƒ?„±, ?‹¤?Œ¨?•˜ë©? ?—?Ÿ¬ ì¶œë ¥ ?›„ ì¢…ë£Œ
 
     SPDLOG_INFO("Create glfw window");
     auto window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME, nullptr, nullptr);
@@ -79,7 +79,7 @@ int main(int argc, const char** __argv){
     }
     glfwMakeContextCurrent(window);
 
-    // glad ë¥¼ í™œìš©í•œ OpenGL í•¨ìˆ˜ ë¡œë”©
+    // glad ë¥? ?™œ?š©?•œ OpenGL ?•¨?ˆ˜ ë¡œë”©
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         SPDLOG_ERROR("failed to initialize glad");
         glfwTerminate();
@@ -112,7 +112,7 @@ int main(int argc, const char** __argv){
     glfwSetMouseButtonCallback(window, OnMouseButton);	
     glfwSetScrollCallback(window, OnScroll);
 
-    // glfw ë£¨í”„ ì‹¤í–‰, ìœˆë„ìš° close ë²„íŠ¼ì„ ëˆ„ë¥´ë©´ ì •ìƒ ì¢…ë£Œ
+    // glfw ë£¨í”„ ?‹¤?–‰, ?œˆ?„?š° close ë²„íŠ¼?„ ?ˆ„ë¥´ë©´ ? •?ƒ ì¢…ë£Œ
     SPDLOG_INFO("Start main loop");
     while (!glfwWindowShouldClose(window)){
         glfwPollEvents();

@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
     src/model.cpp src/model.h
     src/framebuffer.cpp src/framebuffer.h
     src/shadow_map.cpp src/shadow_map.h
+    src/keyInput.cpp
     )
 
 include(Dependency.cmake)

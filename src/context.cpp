@@ -166,7 +166,6 @@ bool Context::Init() {
 }
 
 void Context::ProcessInput(GLFWwindow* window) {
-
     if (!m_cameraControl)
         return;
 
@@ -182,11 +181,20 @@ void Context::ProcessInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         m_cameraPos -= cameraSpeed * cameraRight;    
 
+    // JUMP CODE
     auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        m_cameraPos += cameraSpeed * cameraUp;
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        m_cameraPos.y += jumpPower * jumptime;
+        jumptime += 0.001f;
+    }
+    
+    // SIT CODE
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         m_cameraPos -= cameraSpeed * cameraUp;
+
+    // if (!isJump) {
+    //     m_cameraPos.y = 0.0f;
+    // }
 }
 
 void Context::Reshape(int width, int height) {
@@ -281,35 +289,6 @@ void Context::Render() {
         
         ImGui::Image((ImTextureID)m_shadowMap->GetShadowMap()->Get(),
             ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
-    }
-    ImGui::End();
-
-    if (ImGui::Begin("G-Buffers")) {
-        const char* bufferNames[] = { "position", "normal", "albedo/specular" };
-        static int bufferSelect = 0;
-        ImGui::Combo("buffer", &bufferSelect, bufferNames, 3);
-        float width = ImGui::GetContentRegionAvailWidth();
-        float height = width * ((float)m_height / (float)m_width);
-        auto selectedAttachment = m_deferGeoFramebuffer->GetColorAttachment(bufferSelect);
-        ImGui::Image((ImTextureID)selectedAttachment->Get(),
-            ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
-    }
-    ImGui::End();
-
-    if (ImGui::Begin("SSAO")) {
-        const char* bufferNames[] = { "original", "blurred" };
-        static int bufferSelect = 0;
-        ImGui::Combo("buffer", &bufferSelect, bufferNames, 2);
-
-        float width = ImGui::GetContentRegionAvailWidth();
-        float height = width * ((float)m_height / (float)m_width);
-        auto selectedAttachment =
-            bufferSelect == 0 ?
-            m_ssaoFramebuffer->GetColorAttachment() :
-            m_ssaoBlurFramebuffer->GetColorAttachment();
-
-        ImGui::Image((ImTextureID)selectedAttachment->Get(),
-            ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 
