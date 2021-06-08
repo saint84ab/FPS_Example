@@ -82,11 +82,13 @@ private:
     float jumpPower { 7.0f };
     float jumptime { 0.0f };
     bool isJump = { false };
+    bool isBottom = { true };
     
     // physics parameter
     float gravity { 9.8f };
     float velocity { 0.0f };
-    float acceleration { 0.0f };
+    float acceleration { 10.0f };
+    float massive { 2.0f };
 
     // framebuffer
     FramebufferUPtr m_framebuffer;

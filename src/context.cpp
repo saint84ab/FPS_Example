@@ -169,7 +169,9 @@ void Context::ProcessInput(GLFWwindow* window) {
     if (!m_cameraControl)
         return;
 
-    const float cameraSpeed = 0.05f;
+
+    
+    const float cameraSpeed = 0.1f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         m_cameraPos += cameraSpeed * m_cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -181,20 +183,28 @@ void Context::ProcessInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         m_cameraPos -= cameraSpeed * cameraRight;    
 
-    // JUMP CODE
+    // jump code
     auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        m_cameraPos.y += jumpPower * jumptime;
-        jumptime += 0.001f;
+        if (!isJump && isBottom) {
+            m_cameraPos.y += massive * (acceleration - gravity);
+            acceleration -= 0.01f;
+            // isBottom = false;
+        }
     }
     
-    // SIT CODE
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        m_cameraPos -= cameraSpeed * cameraUp;
+    // sit code
+    // if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    //     m_cameraPos -= cameraSpeed * cameraUp;
 
-    // if (!isJump) {
-    //     m_cameraPos.y = 0.0f;
-    // }
+    // incline code
+    // auto cameraRotation = glm::rotate(glm::cross(m_cameraFront, ))
+
+
+    if (m_cameraPos.y <= 7.0f) {
+        m_cameraPos.y = 7.0f;
+        isBottom = true;
+    }
 }
 
 void Context::Reshape(int width, int height) {
