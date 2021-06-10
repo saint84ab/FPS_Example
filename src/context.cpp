@@ -129,15 +129,6 @@ bool Context::Init() {
     m_blurProgram = Program::Create("./shader/blur_5x5.vs", "./shader/blur_5x5.fs");
     m_model = Model::Load("./model/backpack/backpack.obj");
 
-    // Model loading - AK-47 - body
-    m_gun_ak = Model::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow.obj");
-    // m_gun_ak_texture = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_AlbedoTransparency.tga", false).get());
-    m_gun_ak_material = Material::Create();
-    m_gun_ak_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_AlbedoTransparency.tga", false).get());
-    m_gun_ak_material->specular = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_Normal.tga", false).get());
-    // m_gun_ak_normal = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_Normal.tga", false).get());
-
-
     std::vector<glm::vec3> ssaoNoise;
     ssaoNoise.resize(16);
     for (size_t i = 0; i < ssaoNoise.size(); i++) {
@@ -170,7 +161,25 @@ bool Context::Init() {
 
         m_ssaoSamples[i] = sample * scale;
     }
-	
+
+    // Model loading - AK-47 - body
+    m_gun_ak_body = Model::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow.obj");
+    m_gun_ak_body_material = Material::Create();
+    m_gun_ak_body_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_AlbedoTransparency.tga", false).get());
+    m_gun_ak_body_material->specular = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_Normal.tga", false).get());
+
+    // Model loading - AK-47 - mag
+    m_gun_ak_mag = Model::Load("./model/Assult Rifle AK-47/AK47_Free/ak_mag/ak_magazine_low.obj");
+    m_gun_ak_mag_material = Material::Create();
+    m_gun_ak_mag_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_mag/ak_magazine_low_None_AlbedoTransparency.png", false).get());
+    m_gun_ak_mag_material->specular = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_mag/ak_magazine_low_None_MetallicSmoothness.png", false).get());
+
+    // Model loading - AK-47 - pull
+    m_gun_ak_pull = Model::Load("./model/Assult Rifle AK-47/AK47_Free/ak_pull/ak_pull_low.obj");
+    m_gun_ak_pull_material = Material::Create();
+    m_gun_ak_pull_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_pull/ak_pull_low_None_AlbedoTransparency.png", false).get());
+    m_gun_ak_pull_material->specular = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_pull/ak_pull_low_None_MetallicSmoothness.png", false).get());
+
     return true;
 }
 
@@ -536,14 +545,36 @@ void Context::DrawScene(const glm::mat4& view,
     program->SetUniform("modelTransform", modelTransform);
     m_model->Draw(program);
 
-    auto gun_rotation = glm::radians(m_cameraFront);
+    // AK-47 draw - body
     modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 7.0f, 0.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(1.0f, 1.0f, 1.0f)) *
+        glm::translate(glm::mat4(1.0f), glm::vec3(m_cameraPos.x + 1.35f, m_cameraPos.y - 1.32f, m_cameraPos.z + 0.58f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
         glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
     transform = projection * view * modelTransform;
     program->SetUniform("transform", transform);
     program->SetUniform("modelTransform", modelTransform);
-    m_gun_ak_material->SetToProgram(program);
-    m_gun_ak->Draw(program);
+    m_gun_ak_body_material->SetToProgram(program);
+    m_gun_ak_body->Draw(program);
+    
+    // AK-47 draw - mag
+    modelTransform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(m_cameraPos.x + 1.35f, m_cameraPos.y - 1.0f, m_cameraPos.z + 0.58f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+    transform = projection * view * modelTransform;
+    program->SetUniform("transform", transform);
+    program->SetUniform("modelTransform", modelTransform);
+    m_gun_ak_mag_material->SetToProgram(program);
+    m_gun_ak_mag->Draw(program);
+
+    // AK-47 draw - pull
+    modelTransform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(m_cameraPos.x + 1.35f, m_cameraPos.y - 1.0f, m_cameraPos.z + 0.58f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+    transform = projection * view * modelTransform;
+    program->SetUniform("transform", transform);
+    program->SetUniform("modelTransform", modelTransform);
+    m_gun_ak_pull_material->SetToProgram(program);
+    m_gun_ak_pull->Draw(program);
 }
