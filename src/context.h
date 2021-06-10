@@ -69,17 +69,18 @@ private:
     TexturePtr m_windowTexture;
 
     // camera parameter
-    bool m_cameraControl { false };
+    float cameraRotSpeed { 0.45f };
+    bool m_cameraControl { true };
     glm::vec2 m_prevMousePos { glm::vec2(0.0f) };
     float m_cameraPitch { -20.0f };
     float m_cameraYaw { 0.0f };
-    glm::vec3 m_cameraPos { glm::vec3(0.0f, 2.5f, 8.0f) };
+    glm::vec3 m_cameraPos { glm::vec3(0.0f, 7.0f, 8.0f) };
     glm::vec3 m_cameraFront { glm::vec3(0.0f, 0.0f, -1.0f) };
     glm::vec3 m_cameraUp { glm::vec3(0.0f, 1.0f, 0.0f) };
-    	
+    float cameraSpeed = 0.1f;
 
     // moving parameter
-    float jumpPower { 7.0f };
+    float jumpPower { 3.0f };
     float jumptime { 0.0f };
     bool isJump = { false };
     bool isBottom = { true };
@@ -95,7 +96,7 @@ private:
 
     // cubemap
     CubeTextureUPtr m_cubeTexture;
-    ProgramUPtr m_skyboxProgram;    	
+    ProgramUPtr m_skyboxProgram;
     ProgramUPtr m_envMapProgram;
 
     TexturePtr m_grassTexture;

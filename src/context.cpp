@@ -166,43 +166,69 @@ bool Context::Init() {
 }
 
 void Context::ProcessInput(GLFWwindow* window) {
-    if (!m_cameraControl)
-        return;
 
+    // Running code
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cameraSpeed = 0.25;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
+        cameraSpeed = 0.1f;
 
-    
-    const float cameraSpeed = 0.1f;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        m_cameraPos += cameraSpeed * m_cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        m_cameraPos -= cameraSpeed * m_cameraFront;
-
+    // moving code
     auto cameraRight = glm::normalize(glm::cross(m_cameraUp, -m_cameraFront));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         m_cameraPos += cameraSpeed * cameraRight;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         m_cameraPos -= cameraSpeed * cameraRight;    
 
-    // jump code
-    auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
+    auto moveFront = glm::normalize(glm::cross(m_cameraUp, cameraRight));
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        m_cameraPos += cameraSpeed * moveFront;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        m_cameraPos -= cameraSpeed * moveFront;
+    }
+
+    // Jumping code
+    auto jump = glm::normalize(glm::cross(m_cameraFront, -cameraRight));
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (!isJump && isBottom) {
-            m_cameraPos.y += massive * (acceleration - gravity);
-            acceleration -= 0.01f;
-            // isBottom = false;
+                m_cameraPos.y += acceleration - gravity;
+                acceleration -= 0.007f;
         }
     }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) != GLFW_PRESS) {
+        if (m_cameraPos.y > 7.0f) {
+            m_cameraPos.y += acceleration - gravity;
+            acceleration -= 0.007f;
+        }
+    }
+
+    // if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) {
+    //     gravity = 0.0f;
+    //     while (gravity == 9.8f)
+    //         gravity += 0.01f;
+    // }
     
-    // sit code
+    // sitdown code
     // if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     //     m_cameraPos -= cameraSpeed * cameraUp;
 
     // incline code
     // auto cameraRotation = glm::rotate(glm::cross(m_cameraFront, ))
 
+    // dont moving and cursor hide / normal
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+        m_cameraControl = false;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE) {
+        m_cameraControl = true;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    }
 
     if (m_cameraPos.y <= 7.0f) {
         m_cameraPos.y = 7.0f;
+        acceleration = 10.0f;
         isBottom = true;
     }
 }
@@ -232,13 +258,12 @@ void Context::Reshape(int width, int height) {
 }
 
 void Context::MouseMove(double x, double y) {
-    	
     if (!m_cameraControl)
         return;
+    	
     auto pos = glm::vec2((float)x, (float)y);
     auto deltaPos = pos - m_prevMousePos;
 
-    const float cameraRotSpeed = 0.8f;
     m_cameraYaw -= deltaPos.x * cameraRotSpeed;
     m_cameraPitch -= deltaPos.y * cameraRotSpeed;
 
@@ -252,16 +277,8 @@ void Context::MouseMove(double x, double y) {
 }
 
 void Context::MouseButton(int button, int action, double x, double y) {
-    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-        if (action == GLFW_PRESS) {
-            // 마우?�� 조작 ?��?�� ?��?��?�� ?��?�� 마우?�� 커서 ?���?? ????��
-            m_prevMousePos = glm::vec2((float)x, (float)y);
-            m_cameraControl = true;
-        }
-        else if (action == GLFW_RELEASE) {
-            m_cameraControl = false;
-        }
-    }
+
+    m_prevMousePos = glm::vec2((float)x, (float)y);
 }
 
 void Context::Render() {
@@ -275,11 +292,12 @@ void Context::Render() {
         ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
         ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
         ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
+        ImGui::DragFloat("cameraRotSpeed", &cameraRotSpeed, 0.01f, 0.01f, 1.0f);
         ImGui::Separator();
         if (ImGui::Button("reset camera")) {
             m_cameraYaw = 0.0f;
             m_cameraPitch = 0.0f;
-            m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+            m_cameraPos = glm::vec3(0.0f, 7.0f, 8.0f);
         }
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("l.directional", &m_light.directional);
