@@ -7,6 +7,18 @@ ModelUPtr Model::Load(const std::string& filename) {
     return std::move(model);
 }
 
+ModelUPtr Model::Load(const std::string& filename_first, const std::string& filename_second) {
+    auto model_first = ModelUPtr(new Model());
+    if (!model_first->LoadByAssimp(filename_first))
+        return nullptr;
+    return std::move(model_first);
+    
+    auto model_second = ModelUPtr(new Model());
+    if (!model_second->LoadByAssimp(filename_second))
+        return nullptr;
+    return std::move(model_second);
+}
+
 bool Model::LoadByAssimp(const std::string& filename) {
     Assimp::Importer importer;
     auto scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);

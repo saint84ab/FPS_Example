@@ -141,7 +141,17 @@ private:
     FramebufferUPtr m_ssaoBlurFramebuffer;
     bool m_useSsao { true };
 
-	
+	// Guns - AK-47
+    ModelUPtr m_gun_ak;
+    TextureUPtr m_gun_ak_texture;
+    TextureUPtr m_gun_ak_normal;
+    MaterialPtr m_gun_ak_material;
+
+    // Guns - Kriss Vector
+    ModelUPtr m_gun_vector;
+
+    // Guns - Beretta
+    ModelUPtr m_gun_beretta;
 };
 
 #endif // __CONTEXT_H__

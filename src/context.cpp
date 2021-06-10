@@ -127,7 +127,16 @@ bool Context::Init() {
 
     m_ssaoProgram = Program::Create("./shader/ssao.vs", "./shader/ssao.fs");
     m_blurProgram = Program::Create("./shader/blur_5x5.vs", "./shader/blur_5x5.fs");
-    m_model = Model::Load("./model/backpack.obj");
+    m_model = Model::Load("./model/backpack/backpack.obj");
+
+    // Model loading - AK-47 - body
+    m_gun_ak = Model::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow.obj");
+    // m_gun_ak_texture = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_AlbedoTransparency.tga", false).get());
+    m_gun_ak_material = Material::Create();
+    m_gun_ak_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_AlbedoTransparency.tga", false).get());
+    m_gun_ak_material->specular = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_Normal.tga", false).get());
+    // m_gun_ak_normal = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow_None_Normal.tga", false).get());
+
 
     std::vector<glm::vec3> ssaoNoise;
     ssaoNoise.resize(16);
@@ -202,12 +211,6 @@ void Context::ProcessInput(GLFWwindow* window) {
             acceleration -= 0.007f;
         }
     }
-
-    // if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) {
-    //     gravity = 0.0f;
-    //     while (gravity == 9.8f)
-    //         gravity += 0.01f;
-    // }
     
     // sitdown code
     // if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
@@ -327,10 +330,7 @@ void Context::Render() {
 
     auto projection = glm::perspective(glm::radians(45.0f),
         (float)m_width / (float)m_height, 0.1f, 150.0f);
-    auto view = glm::lookAt(
-        m_cameraPos,
-        m_cameraPos + m_cameraFront,
-        m_cameraUp);
+    auto view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 
     auto lightView = glm::lookAt(m_light.position,
         m_light.position + m_light.direction,
@@ -452,22 +452,6 @@ void Context::Render() {
     // m_skyboxProgram->SetUniform("transform", projection * view * skyboxModelTransform);
     // m_box->Draw(m_skyboxProgram.get());
 
-    // glm::vec3 lightPos = m_light.position;
-    // glm::vec3 lightDir = m_light.direction;
-    // if (m_flashLightMode) {
-    //     lightPos = m_cameraPos;
-    //     lightDir = m_cameraFront;
-    // }
-    // else {
-    //     auto lightModelTransform =
-    //         glm::translate(glm::mat4(1.0), m_light.position) *
-    //         glm::scale(glm::mat4(1.0), glm::vec3(0.1f));	
-    //     m_simpleProgram->Use();
-    //     m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
-    //     m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
-    //     m_box->Draw(m_simpleProgram.get());
-    // }
-
     // m_lightingShadowProgram->Use();
     // m_lightingShadowProgram->SetUniform("viewPos", m_cameraPos);
     // m_lightingShadowProgram->SetUniform("light.directional", m_light.directional ? 1 : 0);
@@ -533,35 +517,15 @@ void Context::DrawScene(const glm::mat4& view,
     m_planeMaterial->SetToProgram(program);
     m_box->Draw(program);
 
-    modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.75f, -4.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-    transform = projection * view * modelTransform;
-    program->SetUniform("transform", transform);
-    program->SetUniform("modelTransform", modelTransform);
-    m_box1Material->SetToProgram(program);
-    m_box->Draw(program);
-
-    modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-    transform = projection * view * modelTransform;
-    program->SetUniform("transform", transform);
-    program->SetUniform("modelTransform", modelTransform);
-    m_box2Material->SetToProgram(program);
-    m_box->Draw(program);
-
-    modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 1.75f, -2.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-    transform = projection * view * modelTransform;
-    program->SetUniform("transform", transform);
-    program->SetUniform("modelTransform", modelTransform);
-    m_box2Material->SetToProgram(program);
-    m_box->Draw(program);
+    // modelTransform =
+    //     glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 1.75f, -2.0f)) *
+    //     glm::rotate(glm::mat4(1.0f), glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+    //     glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+    // transform = projection * view * modelTransform;
+    // program->SetUniform("transform", transform);
+    // program->SetUniform("modelTransform", modelTransform);
+    // m_box2Material->SetToProgram(program);
+    // m_box->Draw(program);
 
     modelTransform =
         glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.55f, 0.0f)) *
@@ -571,4 +535,15 @@ void Context::DrawScene(const glm::mat4& view,
     program->SetUniform("transform", transform);
     program->SetUniform("modelTransform", modelTransform);
     m_model->Draw(program);
+
+    auto gun_rotation = glm::radians(m_cameraFront);
+    modelTransform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 7.0f, 0.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(1.0f, 1.0f, 1.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    transform = projection * view * modelTransform;
+    program->SetUniform("transform", transform);
+    program->SetUniform("modelTransform", modelTransform);
+    m_gun_ak_material->SetToProgram(program);
+    m_gun_ak->Draw(program);
 }

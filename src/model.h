@@ -12,6 +12,7 @@ CLASS_PTR(Model);
 class Model {
 public:
     static ModelUPtr Load(const std::string& filename);
+    static ModelUPtr Load(const std::string& filename_first, const std::string& filename_second);
 
     int GetMeshCount() const { return (int)m_meshes.size(); }
     MeshPtr GetMesh(int index) const { return m_meshes[index]; }
