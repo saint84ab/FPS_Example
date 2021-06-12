@@ -11,7 +11,6 @@
 #include "model.h"
 #include "framebuffer.h"
 #include "shadow_map.h"
-#include <time.h>
 
 CLASS_PTR(Context)
 class Context {
@@ -22,14 +21,18 @@ public:
     void Reshape(int width, int height);
     void MouseMove(double x, double y);
     void MouseButton(int button, int action, double x, double y);
-
     void DrawScene(const glm::mat4& view,
         const glm::mat4& projection,
         const Program* program);
-    
+    void DrawGuns(const glm::mat4& view,
+        const glm::mat4& projection,
+        const Program* program);
+    void HUD();
+
 private:
     Context() {}
     bool Init();
+    bool isHUD { false };
     ProgramUPtr m_program;    	
     ProgramUPtr m_simpleProgram;
     ProgramUPtr m_textureProgram;
@@ -60,8 +63,6 @@ private:
     bool m_flashLightMode { false };
     bool m_blinn { true };
 
-
-
     // material parameter
     MaterialPtr m_planeMaterial;
     MaterialPtr m_box1Material;
@@ -78,6 +79,8 @@ private:
     glm::vec3 m_cameraFront { glm::vec3(0.0f, 0.0f, -1.0f) };
     glm::vec3 m_cameraUp { glm::vec3(0.0f, 1.0f, 0.0f) };
     float cameraSpeed = 0.1f;
+    float fov { 45.0f };
+    std::string handtype;
 
     // moving parameter
     float jumpPower { 3.0f };
@@ -141,13 +144,26 @@ private:
     FramebufferUPtr m_ssaoBlurFramebuffer;
     bool m_useSsao { true };
 
+    // City
+    ModelUPtr m_city_curve;
+    MaterialPtr m_city_curve_material;
+    ModelUPtr m_city_straight;
+    MaterialPtr m_city_straight_material;
+
+    // Guns Status
+    std::string gun_name[3] { "AK-47", "Kriss Vector", "Beretta" };
+    int select_gun { 1 };
+
 	// Guns - AK-47 - body
     ModelUPtr m_gun_ak_body;
     MaterialPtr m_gun_ak_body_material;
+    bool isFire { false };
 
     // Guns - AK-47 - mag
     ModelUPtr m_gun_ak_mag;
     MaterialPtr m_gun_ak_mag_material;
+    int bulletCount_ak { 30 };
+    float rpm_ak { 600.0f };
 
     // Guns - AK-47 - pull
     ModelUPtr m_gun_ak_pull;
@@ -155,6 +171,7 @@ private:
 
     // Guns - Kriss Vector
     ModelUPtr m_gun_vector;
+    MaterialPtr m_gun_vector_material;
 
     // Guns - Beretta
     ModelUPtr m_gun_beretta;

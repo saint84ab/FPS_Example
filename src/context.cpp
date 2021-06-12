@@ -162,6 +162,16 @@ bool Context::Init() {
         m_ssaoSamples[i] = sample * scale;
     }
 
+    // Model loading - city - road - curve
+    m_city_curve = Model::Load("./model/city/Road-2-Lane-Corner.obj");
+    m_city_curve_material = Material::Create();
+    m_city_curve_material->diffuse = Texture::CreateFromImage(Image::Load("./model/city/Road-2-Lane-Corner-jpg.jpg", false).get());
+
+    // Model loading - city - road - straight
+    m_city_straight = Model::Load("./model/city/Road-2-Lane-Straight.obj");
+    m_city_straight_material = Material::Create();
+    m_city_straight_material->diffuse = Texture::CreateFromImage(Image::Load("./model/city/Road-2-Lane-straight-jpg.jpg", false).get());
+
     // Model loading - AK-47 - body
     m_gun_ak_body = Model::Load("./model/Assult Rifle AK-47/AK47_Free/ak_body/aknewlow.obj");
     m_gun_ak_body_material = Material::Create();
@@ -180,11 +190,25 @@ bool Context::Init() {
     m_gun_ak_pull_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_pull/ak_pull_low_None_AlbedoTransparency.png", false).get());
     m_gun_ak_pull_material->specular = Texture::CreateFromImage(Image::Load("./model/Assult Rifle AK-47/AK47_Free/ak_pull/ak_pull_low_None_MetallicSmoothness.png", false).get());
 
+    // Model loading - Kriss Vector
+    // m_gun_vector = Model::Load("./model/Kriss Vector/vector.gltf");
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/ammo_1_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/black_metal_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/blask_palastek_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/body_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/dasteh_1_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/glass_baseColor.png", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/khafe_kon_1_baseColor.png", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/lambert1_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/magzane_1_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/pich_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/sholder_1_baseColor.jpeg", false).get());
+    // m_gun_vector_material->diffuse = Texture::CreateFromImage(Image::Load("./model/Kriss Vector/textures/sight_baseColor.jpeg", false).get());
+
     return true;
 }
 
 void Context::ProcessInput(GLFWwindow* window) {
-
     // Running code
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         cameraSpeed = 0.25;
@@ -235,7 +259,38 @@ void Context::ProcessInput(GLFWwindow* window) {
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE) {
         m_cameraControl = true;
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+
+    // call menu
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        if (!isHUD)
+            isHUD = true;
+        else
+            isHUD = false;
+    }
+
+    // change gun
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        select_gun = 1;
+    }
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        select_gun = 2;
+    }
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        select_gun = 3;
+    }
+    
+    // zoom
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {  
+        while (fov > 15.0f) {
+            fov --;
+        }
+        handtype = "zoom";
+    }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+        fov = 45.0;
+        handtype = "normal";
     }
 
     if (m_cameraPos.y <= 7.0f) {
@@ -272,10 +327,14 @@ void Context::Reshape(int width, int height) {
 void Context::MouseMove(double x, double y) {
     if (!m_cameraControl)
         return;
-    	
+
     auto pos = glm::vec2((float)x, (float)y);
     auto deltaPos = pos - m_prevMousePos;
 
+    // if (m_cameraControl) {
+    //     pos = m_prevMousePos;
+    // }
+    
     m_cameraYaw -= deltaPos.x * cameraRotSpeed;
     m_cameraPitch -= deltaPos.y * cameraRotSpeed;
 
@@ -289,12 +348,16 @@ void Context::MouseMove(double x, double y) {
 }
 
 void Context::MouseButton(int button, int action, double x, double y) {
-
-    m_prevMousePos = glm::vec2((float)x, (float)y);
+    // fire gun
+    if (button == GLFW_MOUSE_BUTTON_LEFT && bulletCount_ak > 0) {
+        isFire = true;
+        bulletCount_ak--;
+        if (bulletCount_ak == 0) {
+            isFire = false;
+        }
+    }
 }
-
-void Context::Render() {
-    	
+void Context::HUD() {
     if (ImGui::Begin("ui window")) {
         if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))) {
             glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
@@ -305,6 +368,7 @@ void Context::Render() {
         ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
         ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
         ImGui::DragFloat("cameraRotSpeed", &cameraRotSpeed, 0.01f, 0.01f, 1.0f);
+        ImGui::DragFloat("fov", &fov, 0.01f, 15.0f, 100.0f);
         ImGui::Separator();
         if (ImGui::Button("reset camera")) {
             m_cameraYaw = 0.0f;
@@ -331,14 +395,19 @@ void Context::Render() {
             ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
+}
 
+void Context::Render() {
+    if (isHUD)
+        HUD();
+    
     m_cameraFront =
         glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
         glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
-    auto projection = glm::perspective(glm::radians(45.0f),
-        (float)m_width / (float)m_height, 0.1f, 150.0f);
+    auto projection = glm::perspective(glm::radians(fov),
+        (float)m_width / (float)m_height, 0.1f, 500.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 
     auto lightView = glm::lookAt(m_light.position,
@@ -357,7 +426,7 @@ void Context::Render() {
         m_shadowMap->GetShadowMap()->GetHeight());
     m_simpleProgram->Use();
     m_simpleProgram->SetUniform("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    DrawScene(lightView, lightProjection, m_simpleProgram.get());
+    DrawGuns(lightView, lightProjection, m_simpleProgram.get());
 
     m_deferGeoFramebuffer->Bind();
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -365,6 +434,7 @@ void Context::Render() {
     glViewport(0, 0, m_width, m_height);
     m_deferGeoProgram->Use();
     DrawScene(view, projection, m_deferGeoProgram.get());
+    DrawGuns(view, projection, m_deferGeoProgram.get());
 
     m_ssaoFramebuffer->Bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -452,14 +522,14 @@ void Context::Render() {
         m_box->Draw(m_simpleProgram.get());
     }
 
-    // auto skyboxModelTransform =
-    //     glm::translate(glm::mat4(1.0), m_cameraPos) *
-    //     glm::scale(glm::mat4(1.0), glm::vec3(50.0f));
-    // m_skyboxProgram->Use();
-    // m_cubeTexture->Bind();
-    // m_skyboxProgram->SetUniform("skybox", 0);
-    // m_skyboxProgram->SetUniform("transform", projection * view * skyboxModelTransform);
-    // m_box->Draw(m_skyboxProgram.get());
+    auto skyboxModelTransform =
+        glm::translate(glm::mat4(1.0), m_cameraPos) *
+        glm::scale(glm::mat4(1.0), glm::vec3(500.0f));
+    m_skyboxProgram->Use();
+    m_cubeTexture->Bind();
+    m_skyboxProgram->SetUniform("skybox", 0);
+    m_skyboxProgram->SetUniform("transform", projection * view * skyboxModelTransform);
+    m_box->Draw(m_skyboxProgram.get());
 
     // m_lightingShadowProgram->Use();
     // m_lightingShadowProgram->SetUniform("viewPos", m_cameraPos);
@@ -516,65 +586,104 @@ void Context::DrawScene(const glm::mat4& view,
     const glm::mat4& projection,
     const Program* program) {
 
-    program->Use();
+    // city - draw
     auto modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.5f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(40.0f, 1.0f, 40.0f));
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.005f, 0.005f, 0.005f));
     auto transform = projection * view * modelTransform;
     program->SetUniform("transform", transform);
     program->SetUniform("modelTransform", modelTransform);
-    m_planeMaterial->SetToProgram(program);
-    m_box->Draw(program);
-
-    // modelTransform =
-    //     glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 1.75f, -2.0f)) *
-    //     glm::rotate(glm::mat4(1.0f), glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-    //     glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-    // transform = projection * view * modelTransform;
-    // program->SetUniform("transform", transform);
-    // program->SetUniform("modelTransform", modelTransform);
-    // m_box2Material->SetToProgram(program);
-    // m_box->Draw(program);
+    m_city_curve_material->SetToProgram(program);
+    m_city_curve->Draw(program);
 
     modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.55f, 0.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+        glm::translate(glm::mat4(1.0f), glm::vec3(-18.0f, 0.0f, 0.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.005f, 0.005f, 0.005f));
     transform = projection * view * modelTransform;
     program->SetUniform("transform", transform);
     program->SetUniform("modelTransform", modelTransform);
-    m_model->Draw(program);
-
-    // AK-47 draw - body
-    modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(m_cameraPos.x + 1.35f, m_cameraPos.y - 1.32f, m_cameraPos.z + 0.58f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
-    transform = projection * view * modelTransform;
-    program->SetUniform("transform", transform);
-    program->SetUniform("modelTransform", modelTransform);
-    m_gun_ak_body_material->SetToProgram(program);
-    m_gun_ak_body->Draw(program);
+    m_city_straight_material->SetToProgram(program);
+    m_city_straight->Draw(program);
     
-    // AK-47 draw - mag
     modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(m_cameraPos.x + 1.35f, m_cameraPos.y - 1.0f, m_cameraPos.z + 0.58f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+        glm::translate(glm::mat4(1.0f), glm::vec3(-36.0f, 0.0f, 0.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.005f, 0.005f, 0.005f));
     transform = projection * view * modelTransform;
     program->SetUniform("transform", transform);
     program->SetUniform("modelTransform", modelTransform);
-    m_gun_ak_mag_material->SetToProgram(program);
-    m_gun_ak_mag->Draw(program);
+    m_city_straight_material->SetToProgram(program);
+    m_city_straight->Draw(program);
+}
 
-    // AK-47 draw - pull
-    modelTransform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(m_cameraPos.x + 1.35f, m_cameraPos.y - 1.0f, m_cameraPos.z + 0.58f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
-    transform = projection * view * modelTransform;
-    program->SetUniform("transform", transform);
-    program->SetUniform("modelTransform", modelTransform);
-    m_gun_ak_pull_material->SetToProgram(program);
-    m_gun_ak_pull->Draw(program);
+void Context::DrawGuns(const glm::mat4& view,
+    const glm::mat4& projection,
+    const Program* program) {
+    
+    switch (select_gun) {
+        case 1 : {  // AK-47 draw
+            // AK-47 draw - body
+            auto modelTransform =
+                glm::translate(glm::mat4(1.0f), 
+                glm::vec3(m_cameraPos.x + 0.525f * cosf(glm::radians(m_cameraYaw)) - sinf(glm::radians(m_cameraYaw)),
+                m_cameraPos.y - 0.5f,
+                m_cameraPos.z - 1.025f * cosf(glm::radians(m_cameraYaw)))) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw + 90.0f), glm::vec3(0.0f, 0.8f, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(0.05f, 0.05f, 0.05f));
+            auto transform = projection * view * modelTransform;
+            program->SetUniform("transform", transform);
+            program->SetUniform("modelTransform", modelTransform);
+            m_gun_ak_body_material->SetToProgram(program);
+            m_gun_ak_body->Draw(program);
+
+            // AK-47 draw - mag
+            modelTransform =
+                glm::translate(glm::mat4(1.0f), 
+                glm::vec3(m_cameraPos.x + 0.525f * cosf(glm::radians(m_cameraYaw)) - sinf(glm::radians(m_cameraYaw)),
+                m_cameraPos.y - 0.3f, 
+                m_cameraPos.z - 1.025f * cosf(glm::radians(m_cameraYaw)))) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw + 90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
+            transform = projection * view * modelTransform;
+            program->SetUniform("transform", transform);
+            program->SetUniform("modelTransform", modelTransform);
+            m_gun_ak_mag_material->SetToProgram(program);
+            m_gun_ak_mag->Draw(program);
+
+            // AK-47 draw - pull
+            modelTransform =
+                glm::translate(glm::mat4(1.0f), 
+                glm::vec3(m_cameraPos.x + 0.525f * cosf(glm::radians(m_cameraYaw)) - sinf(glm::radians(m_cameraYaw)), 
+                m_cameraPos.y - 0.3375f, 
+                m_cameraPos.z - 1.025f * cosf(glm::radians(m_cameraYaw)))) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw + 90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
+            transform = projection * view * modelTransform;
+            program->SetUniform("transform", transform);
+            program->SetUniform("modelTransform", modelTransform);
+            m_gun_ak_pull_material->SetToProgram(program);
+            m_gun_ak_pull->Draw(program);
+            break;
+        }
+        case 2 : {  // Kriss Vector draw
+            // auto modelTransform =
+            //     glm::translate(glm::mat4(1.0f), 
+            //     glm::vec3(m_cameraPos.x + 0.525f * cosf(glm::radians(m_cameraYaw)) - sinf(glm::radians(m_cameraYaw)),
+            //     m_cameraPos.y - 0.5f,
+            //     m_cameraPos.z - 1.025f * cosf(glm::radians(m_cameraYaw)))) *
+            //     glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw + 90.0f), glm::vec3(0.0f, 0.8f, 0.0f)) *
+            //     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+            // auto transform = projection * view * modelTransform;
+            // program->SetUniform("transform", transform);
+            // program->SetUniform("modelTransform", modelTransform);
+            // m_gun_vector->Draw(program);
+        }
+        case 3 : {
+
+        }
+    }
+
+
 }

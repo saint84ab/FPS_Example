@@ -25,7 +25,7 @@ void OnKeyEvent(GLFWwindow* window,
         mods & GLFW_MOD_CONTROL ? "C" : "-",
         mods & GLFW_MOD_SHIFT ? "S" : "-",
         mods & GLFW_MOD_ALT ? "A" : "-");
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+    if (key == GLFW_KEY_F10 && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
 }
